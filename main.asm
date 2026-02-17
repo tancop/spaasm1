@@ -2,34 +2,62 @@ global    _start
 
 section   .data
 
-%define message_text "slovakia #1", 10
-%strlen message_len  message_text
-message:  db message_text
+start_msg  db "slovakia #1", 10
+start_len  equ $ - start_msg
 
-%define args_text "arguments found", 10
-%strlen args_len  args_text
-args_msg:  db args_text
+args_msg  db "arguments found", 10
+args_len  equ $ - args_msg
+
+help_msg  db "count digits, small letters, capital letters and other characters in a file", 10
+          db "usage - count FILE1 [FILE2...]", 10
+help_len  equ $ - help_msg
 
 section   .text
 
-%macro print 2 ; print ptr, len
-    mov rax, 1
-    mov rdi, 1
-    mov rsi, %1     ; set pointer to string start
-    mov rdx, %2 + 1 ; don't skip last character
+; print ptr, len
+; prints len characters starting at ptr to stdout
+%macro print 2
+    mov rax, 1      ; write(2)
+    mov rdi, 1      ; stdout
+    mov rsi, %1     ; set string pointer to %1
+    mov rdx, %2     ; set output length to %2
     syscall
 %endmacro
 
-_start:
-    print message, message_len
+; exits with code 0, no arguments
+%macro exit 0
+    mov rax, 60     ; exit(2)
+    xor rdi, rdi    ; code 0
+    syscall
+%endmacro
 
-    mov rbx, [rsp]
-    cmp rbx, 1
-    je no_args
+; check_byte off, pat, dst
+; checks if byte at [rax+off] is equal to pat, jump to dst if not
+; clobbers rsi
+%macro check_byte 3
+    mov sil, [rax + %1]
+    cmp sil, %2
+    jne %3
+%endmacro
+
+_start:
+    print start_msg, start_len
+
+    mov rcx, [rsp]                ; check number of arguments
+    cmp rcx, 1
+    je no_args                    ; print message if argc > 1
+
+    mov rax, [rsp+16]             ; argv[1]
+
+    check_byte 0, '-', not_help   ; check if the argument is '-h'
+    check_byte 1, 'h', not_help
+    check_byte 2, 0, not_help
+
+    print help_msg, help_len
+    exit
+
+not_help:
     print args_msg, args_len
 
 no_args:
-
-    mov       rax, 60                 ; system call for exit
-    xor       rdi, rdi                ; exit code 0
-    syscall                           ; invoke operating system to exit
+    exit
