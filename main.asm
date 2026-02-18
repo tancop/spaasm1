@@ -12,6 +12,10 @@ help_msg  db "count digits, small letters, capital letters and other characters 
           db "usage - count FILE1 [FILE2...]", 10
 help_len  equ $ - help_msg
 
+section   .bss
+
+buf       times 256 db ?
+
 section   .text
 
 ; print ptr, len
@@ -40,11 +44,28 @@ section   .text
     jne %3
 %endmacro
 
+%define O_RDONLY	00000000q ; open file read only
+
+; open path, flags
+%macro open 2
+    mov rax, 2  ; open(2)
+    mov rdi, %1 ; pointer to path
+    mov rsi, %2 ; flags
+    syscall
+%endmacro
+
+; close fd
+%macro close 1
+    mov rax, 3  ; close(2)
+    mov rdi, %1 ; fd to close
+    syscall
+%endmacro
+
 _start:
     print start_msg, start_len
 
-    mov rcx, [rsp]                ; check number of arguments
-    cmp rcx, 1
+    mov rbx, [rsp]                ; check number of arguments
+    cmp rbx, 1
     je no_args                    ; print message if argc > 1
 
     mov rax, [rsp+16]             ; argv[1]
@@ -58,6 +79,15 @@ _start:
 
 not_help:
     print args_msg, args_len
+
+%define reg_fd r12 ; used to store file descriptor
+    open [rsp+16], O_RDONLY
+    mov reg_fd, rax
+
+main_loop:
+
+
+    close reg_fd
 
 no_args:
     exit
