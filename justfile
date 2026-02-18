@@ -1,4 +1,4 @@
-run file args="":
+run file *args:
     #!/usr/bin/env sh
     name="{{ file_stem(file) }}"
     nasm "{{ file }}" -f elf64 -o "out/$name.o"
