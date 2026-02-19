@@ -17,9 +17,14 @@ help_len  equ $ - help_msg
 
 section   .bss
 
-buf        times 256 db ?
+buf        resb 256
 buf_offset dq ?
 read_ctr   dq ?
+
+digits     dq ?
+big        dq ?
+small      dq ?
+other      dq ?
 
 section   .text
 
@@ -75,6 +80,11 @@ section   .text
     syscall
 %endmacro
 
+%define r_line_digits r12 ; digits on line
+%define r_line_big r13    ; capital letters on line
+%define r_line_small r14  ; small letters on line
+%define r_line_other r15  ; other chars on line
+
 _start:
     print start_msg, start_len
 
@@ -105,11 +115,6 @@ read_buf:
     mov rsi, 0         ; offset into buf
 
 read_char:
-%define r_line_digits r12 ; digits on line
-%define r_line_big r13    ; capital letters on line
-%define r_line_small r14  ; small letters on line
-%define r_line_other r15  ; other chars on line
-
     cmp byte [buf + rsi], 10   ; is newline?
     jne same_line
 
@@ -117,12 +122,49 @@ read_char:
     mov [buf_offset], rsi
     mov [read_ctr], rdi
 
+    add [digits], r_line_digits
+    add [big], r_line_big
+    add [small], r_line_small
+    add [other], r_line_other
+
     print line_msg, line_len
 
     mov rsi, [buf_offset]
     mov rdi, [read_ctr]
 
+    jmp loop_end
+
 same_line:
+    cmp byte [buf + rsi], 47 ; control chars
+    jle is_other
+    cmp byte [buf + rsi], 57 ; digits
+    jle is_digit
+    cmp byte [buf + rsi], 64 ; special chars
+    jle is_other
+    cmp byte [buf + rsi], 90 ; capital letters
+    jle is_big
+    cmp byte [buf + rsi], 96 ; more special chars
+    jle is_other
+    cmp byte [buf + rsi], 122 ; small letters
+    jle is_small
+    jmp is_other
+
+is_digit:
+    inc r_line_digits
+    jmp loop_end
+
+is_big:
+    inc r_line_big
+    jmp loop_end
+
+is_small:
+    inc r_line_small
+    jmp loop_end
+
+is_other:
+    inc r_line_other
+
+loop_end:
     inc rsi               ; add to offset
     dec rdi               ; take from read length
     jz read_buf           ; reached end of buffer
