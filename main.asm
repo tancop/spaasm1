@@ -5,8 +5,11 @@ section   .data
 start_msg  db "slovakia #1", 10
 start_len  equ $ - start_msg
 
-args_msg  db "arguments found", 10
-args_len  equ $ - args_msg
+fail_msg  db "failed to open file", 10
+fail_len  equ $ - fail_msg
+
+line_msg  db "line end", 10
+line_len  equ $ - line_msg
 
 help_msg  db "count digits, small letters, capital letters and other characters in a file", 10
           db "usage - count FILE1 [FILE2...]", 10
@@ -14,7 +17,9 @@ help_len  equ $ - help_msg
 
 section   .bss
 
-buf       times 256 db ?
+buf        times 256 db ?
+buf_offset dq ?
+read_ctr   dq ?
 
 section   .text
 
@@ -61,6 +66,15 @@ section   .text
     syscall
 %endmacro
 
+; read fd, ptr, len
+%macro read 3
+    mov rax, 0
+    mov rdi, %1
+    mov rsi, %2
+    mov rdx, %3
+    syscall
+%endmacro
+
 _start:
     print start_msg, start_len
 
@@ -78,16 +92,44 @@ _start:
     exit
 
 not_help:
-    print args_msg, args_len
-
-%define reg_fd r12 ; used to store file descriptor
     open [rsp+16], O_RDONLY
-    mov reg_fd, rax
+    mov rbx, rax
 
-main_loop:
+read_buf:
+    read rbx, buf, 256 ; read bytes to buffer
 
+    mov rdi, rax       ; store read length
+    cmp rax, 0
+    je end             ; no more bytes to read
 
-    close reg_fd
+    mov rsi, 0         ; offset into buf
+
+read_char:
+%define r_line_digits r12 ; digits on line
+%define r_line_big r13    ; capital letters on line
+%define r_line_small r14  ; small letters on line
+%define r_line_other r15  ; other chars on line
+
+    cmp byte [buf + rsi], 10   ; is newline?
+    jne same_line
+
+    ; print line counts and add to totals
+    mov [buf_offset], rsi
+    mov [read_ctr], rdi
+
+    print line_msg, line_len
+
+    mov rsi, [buf_offset]
+    mov rdi, [read_ctr]
+
+same_line:
+    inc rsi               ; add to offset
+    dec rdi               ; take from read length
+    jz read_buf           ; reached end of buffer
+    jmp read_char
+
+end:
+    close rbx
 
 no_args:
     exit
