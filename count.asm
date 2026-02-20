@@ -120,7 +120,7 @@ printn_end:
     inc r9
 
     mov r8, r9                    ; get number of digits in output
-    add r8, 2                     ; add 1 for final space
+    add r8, 1                     ; add 1 for final space
     print rsi, r8                 ; print out result
 
     ret
