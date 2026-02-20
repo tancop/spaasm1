@@ -8,12 +8,15 @@ start_len  equ $ - start_msg
 fail_msg  db "failed to open file", 10
 fail_len  equ $ - fail_msg
 
-line_msg  db "line end", 10
-line_len  equ $ - line_msg
-
 help_msg  db "count digits, small letters, capital letters and other characters in a file", 10
           db "usage - count FILE1 [FILE2...]", 10
 help_len  equ $ - help_msg
+
+total_msg  db "Total:", 10
+total_len  equ $ - total_msg
+
+out_buf    times 20 db 0     ; output buffer for printn
+           db ' '            ; 2^64 is 20 characters long
 
 section   .bss
 
@@ -42,6 +45,13 @@ section   .text
 %macro exit 0
     mov rax, 60     ; exit(2)
     xor rdi, rdi    ; code 0
+    syscall
+%endmacro
+
+; exits with user provided code
+%macro fail 1
+    mov rax, 60     ; exit(2)
+    mov rdi, %1     ; set exit code
     syscall
 %endmacro
 
@@ -80,6 +90,37 @@ section   .text
     syscall
 %endmacro
 
+; print number in rdi to stdout
+printn:
+    mov rax, rdi                  ; number to print
+    mov rdx, 0                    ; clear out for division
+    mov rsi, out_buf + 19         ; pointer to current character
+    mov r8, 10                    ; constant 10
+    mov r9, 0                     ; chars written
+
+printn_loop:
+    cmp rax, 10                   ; check if on first digit (last processed)
+    jl  printn_end
+
+    div r8                        ; divide rax by 10
+    mov byte [rsi], dl
+    add byte [rsi], 48  ; convert to ascii digit
+    mov rdx, 0                    ; clear out remainder
+
+    dec rsi
+    inc r9
+    jmp printn_loop
+printn_end:
+    mov byte [rsi], al            ; print last digit
+    add byte [rsi], 48
+    inc r9
+
+    mov r8, r9                    ; max length, 20 digits + space
+    add r8, 2
+    print rsi, r8
+
+    ret
+
 %define r_line_digits r12 ; digits on line
 %define r_line_big r13    ; capital letters on line
 %define r_line_small r14  ; small letters on line
@@ -103,6 +144,13 @@ _start:
 
 not_help:
     open [rsp+16], O_RDONLY
+
+    bt  rax, 0    ; check if return value is positive -> success
+    jc  open_ok
+    print fail_msg, fail_len
+    fail 1
+
+open_ok:
     mov rbx, rax
 
 read_buf:
@@ -127,7 +175,27 @@ read_char:
     add [small], r_line_small
     add [other], r_line_other
 
-    print line_msg, line_len
+    mov rbp, rsp            ; save stack pointer for argc/argv
+
+    mov rdi, r_line_digits
+    call printn
+    mov rdi, r_line_big
+    call printn
+    mov rdi, r_line_small
+    call printn
+    mov rdi, r_line_other
+    call printn
+
+    mov rsp, rbp            ; restore stack pointer
+
+    ; clear line registers
+    xor r_line_digits, r_line_digits
+    xor r_line_big, r_line_big
+    xor r_line_small, r_line_small
+    xor r_line_other, r_line_other
+
+    mov byte [out_buf], 10 ; new line
+    print out_buf, 1
 
     mov rsi, [buf_offset]
     mov rdi, [read_ctr]
@@ -171,6 +239,20 @@ loop_end:
     jmp read_char
 
 end:
+    print total_msg, total_len
+
+    mov rdi, [digits]
+    call printn
+    mov rdi, [big]
+    call printn
+    mov rdi, [small]
+    call printn
+    mov rdi, [other]
+    call printn
+
+    mov byte [out_buf], 10 ; new line
+    print out_buf, 1
+
     close rbx
 
 no_args:
