@@ -2,9 +2,6 @@ global    _start
 
 section   .data
 
-start_msg  db "slovakia #1", 10
-start_len  equ $ - start_msg
-
 fail_msg  db "failed to open file", 10
 fail_len  equ $ - fail_msg
 
@@ -131,8 +128,6 @@ printn_end:
 %define r_line_other r15  ; other chars on line
 
 _start:
-    print start_msg, start_len
-
     mov rbx, [rsp]                ; check number of arguments
     cmp rbx, 1
     je no_args                    ; exit if argc == 1 (no arguments)
