@@ -177,6 +177,9 @@ loop_tail:
     jmp read_char
 
 end:
+    cmp rbx, 1
+    jne no_total  ; skip printing if this is not the last file
+
     ; print total counts in the end
     print total_msg, total_len
 
@@ -192,6 +195,7 @@ end:
     mov byte [out_buf], 10 ; new line
     print out_buf, 1
 
+no_total:
     close [open_fd]
 
     ; restore r12-r15 from stack

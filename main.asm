@@ -5,8 +5,9 @@ extern    count_file
 
 section   .data
 
-help_msg  db "count digits, small letters, capital letters and other characters in a file", 10
+help_msg  db "count digits, small letters, capital letters and other characters", 10
           db "usage - count FILE1 [FILE2...]", 10
+          db "output - [digits] [small] [capital] [other] for each line and total for all files", 10
 help_len  equ $ - help_msg
 
 section   .text
@@ -27,10 +28,19 @@ _start:
 
 not_help:
     mov rbp, rsp       ; save argv pointer (rbx = argc, rbp = argv)
+    add rbp, 16        ; skip argc and file name
+
+    dec rbx            ; count actual args without file name
 
 handle_file:
-    mov rdi, [rsp + 16]
+    mov rdi, [rbp]
     call count_file
+
+    dec rbx
+    jz  no_args        ; exit if no arguments left
+
+    add rbp, 8         ; move to next file
+    jmp handle_file
 
 no_args:
     exit
