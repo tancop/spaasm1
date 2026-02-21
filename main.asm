@@ -5,6 +5,10 @@ extern    count_file
 
 section   .data
 
+no_input_msg db "count: missing file", 10
+             db "try 'count -h' to get help", 10
+no_input_len  equ $ - no_input_msg
+
 help_msg  db "count digits, small letters, capital letters and other characters", 10
           db "usage - count FILE1 [FILE2...]", 10
           db "output - [digits] [capital] [small] [other] for each line and total for all files", 10
@@ -43,4 +47,7 @@ handle_file:
     jmp handle_file
 
 no_args:
+    print no_input_msg, no_input_len
+
+end:
     exit
