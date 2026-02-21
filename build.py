@@ -11,11 +11,25 @@ def main():
 
     asm_files = [f.removesuffix(".asm") for f in glob.glob("*.asm")]
 
+    argv = []
+    debug = False
+
+    for arg in sys.argv[1:]:
+        if arg == "-d":
+            debug = True
+        else:
+            argv.append(arg)
+
     for file in asm_files:
-        os.system(f"nasm {file}.asm -f elf64 -F dwarf -o out/{file}.o")
+        os.system(
+            f"nasm {file}.asm -f elf64 {'-F dwarf' if debug else ''} -o out/{file}.o"
+        )
 
     os.system(f"gold {' '.join([f'out/{f}.o' for f in asm_files])} -o out/main")
-    os.system(f"out/main {' '.join(sys.argv[1:])}")
+    if not debug:
+        os.system("strip out/main")
+
+    os.system(f"out/main {' '.join(argv)}")
 
 
 if __name__ == "__main__":
