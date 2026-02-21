@@ -29,7 +29,8 @@ def main():
     if not debug:
         os.system("strip out/main")
 
-    os.system(f"out/main {' '.join(argv)}")
+    code = os.waitstatus_to_exitcode(os.system(f"out/main {' '.join(argv)}"))
+    sys.exit(code)
 
 
 if __name__ == "__main__":
