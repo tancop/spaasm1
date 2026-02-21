@@ -1,5 +1,5 @@
-%ifndef MACROS_ASM
-%define MACROS_ASM
+%ifndef MACROS_ASL
+%define MACROS_ASL
 
 ; print ptr, len
 ; prints len characters starting at ptr to stdout
@@ -63,4 +63,4 @@
     syscall
 %endmacro
 
-%endif ; MACROS_ASM
+%endif ; MACROS_ASL
