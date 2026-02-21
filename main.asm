@@ -7,7 +7,7 @@ section   .data
 
 help_msg  db "count digits, small letters, capital letters and other characters", 10
           db "usage - count FILE1 [FILE2...]", 10
-          db "output - [digits] [small] [capital] [other] for each line and total for all files", 10
+          db "output - [digits] [capital] [small] [other] for each line and total for all files", 10
 help_len  equ $ - help_msg
 
 section   .text
