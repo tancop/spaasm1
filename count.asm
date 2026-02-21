@@ -12,6 +12,9 @@ section   .data
 fail_msg  db "failed to open file", 10
 fail_len  equ $ - fail_msg
 
+read_fail_msg  db "failed to read from file", 10
+read_fail_len  equ $ - read_fail_msg
+
 total_msg  db "Total:", 10
 total_len  equ $ - total_msg
 
@@ -71,8 +74,8 @@ count_file:
     mov rax, rdi
     open rdi, O_RDONLY ; open input file as read only
 
-    bt  rax, 0         ; check if return value is positive -> success
-    jc  open_ok
+    test rax, rax      ; check if return value is negative -> error
+    jns open_ok
 
     print fail_msg, fail_len
     fail 1             ; open returned error, exit with code 1
@@ -88,7 +91,13 @@ open_ok:
 
 read_buf:
     read [open_fd], buf, 256 ; read bytes to buffer
+    test rax, rax      ; check if return value is negative -> error
+    jns  read_ok
 
+    print read_fail_msg, read_fail_len
+    fail 2
+
+read_ok:
     mov rdi, rax       ; store read length
     cmp rax, 0
     je end             ; no more bytes to read
