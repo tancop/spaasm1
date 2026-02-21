@@ -25,11 +25,11 @@ def main():
             f"nasm {file}.asm -f elf64 {'-F dwarf' if debug else ''} -o out/{file}.o"
         )
 
-    os.system(f"gold {' '.join([f'out/{f}.o' for f in asm_files])} -o out/main")
+    os.system(f"gold {' '.join([f'out/{f}.o' for f in asm_files])} -o out/count")
     if not debug:
-        os.system("strip out/main")
+        os.system("strip out/count")
 
-    code = os.waitstatus_to_exitcode(os.system(f"out/main {' '.join(argv)}"))
+    code = os.waitstatus_to_exitcode(os.system(f"out/count {' '.join(argv)}"))
     sys.exit(code)
 
 
