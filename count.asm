@@ -121,9 +121,9 @@ read_char:
     ; print all line counts
     mov rdi, r_line_digits
     call printn
-    mov rdi, r_line_big
-    call printn
     mov rdi, r_line_small
+    call printn
+    mov rdi, r_line_big
     call printn
     mov rdi, r_line_other
     call printn
@@ -194,9 +194,9 @@ end:
 
     mov rdi, [digits]
     call printn
-    mov rdi, [big]
-    call printn
     mov rdi, [small]
+    call printn
+    mov rdi, [big]
     call printn
     mov rdi, [other]
     call printn
