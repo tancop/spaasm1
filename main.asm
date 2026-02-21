@@ -41,13 +41,14 @@ handle_file:
     call count_file
 
     dec rbx
-    jz  no_args        ; exit if no arguments left
+    jz  end            ; exit if no arguments left
 
     add rbp, 8         ; move to next file
     jmp handle_file
 
 no_args:
     print no_input_msg, no_input_len
+    fail 3
 
 end:
     exit
