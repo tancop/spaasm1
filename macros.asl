@@ -1,3 +1,6 @@
+%ifndef MACROS_ASM
+%define MACROS_ASM
+
 ; print ptr, len
 ; prints len characters starting at ptr to stdout
 %macro print 2
@@ -59,3 +62,5 @@
     mov rdx, %3
     syscall
 %endmacro
+
+%endif ; MACROS_ASM

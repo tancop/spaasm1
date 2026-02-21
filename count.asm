@@ -1,15 +1,16 @@
-%include "macros.asm"
+%include "macros.asl"
 
-global    _start
+global    count_file
+
+%define r_line_digits r12 ; digits on line
+%define r_line_big r13    ; capital letters on line
+%define r_line_small r14  ; small letters on line
+%define r_line_other r15  ; other chars on line
 
 section   .data
 
 fail_msg  db "failed to open file", 10
 fail_len  equ $ - fail_msg
-
-help_msg  db "count digits, small letters, capital letters and other characters in a file", 10
-          db "usage - count FILE1 [FILE2...]", 10
-help_len  equ $ - help_msg
 
 total_msg  db "Total:", 10
 total_len  equ $ - total_msg
@@ -27,6 +28,8 @@ digits     dq ?      ; character class counts for whole file
 big        dq ?
 small      dq ?
 other      dq ?
+
+open_fd    dq ?
 
 section   .text
 
@@ -51,6 +54,7 @@ printn_loop:
     dec rsi                       ; move next digit position back 1
     inc r9                        ; increment number of digits
     jmp printn_loop
+
 printn_end:
     mov byte [rsi], al            ; write first digit to buffer
     add byte [rsi], 48            ; stored in rax because we skipped division
@@ -62,27 +66,10 @@ printn_end:
 
     ret
 
-%define r_line_digits r12 ; digits on line
-%define r_line_big r13    ; capital letters on line
-%define r_line_small r14  ; small letters on line
-%define r_line_other r15  ; other chars on line
-
-_start:
-    mov rbx, [rsp]                ; check number of arguments
-    cmp rbx, 1
-    je no_args                    ; exit if argc == 1 (no arguments)
-
-    mov rax, [rsp + 16]           ; load address of argv[1]
-
-    check_byte 0, '-', not_help   ; check if the argument is '-h'
-    check_byte 1, 'h', not_help
-    check_byte 2, 0, not_help
-
-    print help_msg, help_len      ; user needs help, print it and exit
-    exit
-
-not_help:
-    open [rsp + 16], O_RDONLY ; open input file as read only
+; main procedure, rdi is pointer to file path
+count_file:
+    mov rax, rdi
+    open rdi, O_RDONLY ; open input file as read only
 
     bt  rax, 0         ; check if return value is positive -> success
     jc  open_ok
@@ -91,10 +78,16 @@ not_help:
     fail 1             ; open returned error, exit with code 1
 
 open_ok:
-    mov rbx, rax
+    mov [open_fd], rax ; save file descriptor
+
+    ; save r12-r15 to stack
+    push r_line_digits
+    push r_line_big
+    push r_line_small
+    push r_line_other
 
 read_buf:
-    read rbx, buf, 256 ; read bytes to buffer
+    read [open_fd], buf, 256 ; read bytes to buffer
 
     mov rdi, rax       ; store read length
     cmp rax, 0
@@ -116,8 +109,6 @@ read_char:
     add [small], r_line_small
     add [other], r_line_other
 
-    mov rbp, rsp            ; save stack pointer for argc/argv
-
     ; print all line counts
     mov rdi, r_line_digits
     call printn
@@ -127,8 +118,6 @@ read_char:
     call printn
     mov rdi, r_line_other
     call printn
-
-    mov rsp, rbp            ; restore stack pointer
 
     ; clear line count registers
     xor r_line_digits, r_line_digits
@@ -203,7 +192,12 @@ end:
     mov byte [out_buf], 10 ; new line
     print out_buf, 1
 
-    close rbx
+    close [open_fd]
 
-no_args:
-    exit
+    ; restore r12-r15 from stack
+    pop r_line_other
+    pop r_line_small
+    pop r_line_big
+    pop r_line_digits
+
+    ret
