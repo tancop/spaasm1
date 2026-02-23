@@ -1,3 +1,19 @@
+; Zadanie 1
+; Teodor Potančok
+
+; 1. Vypísať počty číslic, malých písmen, veľkých písmen a ostatných znakov pre
+; každý riadok aj pre celý vstup.
+
+; 7. Plus 1 bod: Ak budú korektne spracované vstupné súbory s veľkosťou nad 64 kB.
+; 9. Plus 2 body: Ak bude možné zadať viacero vstupných súborov.
+; 10. Plus 2 body: Je možné získať ak pridelená úloha bude realizovaná ako externá
+; procedúra (kompilovaná samostatne a prilinkovaná k výslednému programu).
+; 12. Plus 1 bod: Je možné získať za (dobré) komentáre, resp. dokumentáciu, v
+; anglickom jazyku.
+
+; x. x. 2026
+; 2. ročník, LS 2025/26, informatika
+
 %include "macros.asl"
 
 global    _start
@@ -54,3 +70,23 @@ no_args:
 
 end:
     exit
+
+; Zhodnotenie:
+
+; Program je navrhnutý pre prostredie s jadrom Linux a architektúrou x86-64. Pre
+; jeho skompilovanie potrebujeme assembler NASM a linker s podporou ELF, napr. GNU
+; ld alebo gold. Funguje pre všetky súbory ktoré majú obsah a konečnú dĺžku. Ak je
+; vstupný súbor adresár alebo neexistuje vráti chybu. Ak nemá koniec ako /dev/zero
+; program nikdy neskončí a musíme ho manuálne zastaviť.
+;
+; Hlavná procedúra count_file je v súbore count.asm. Ako argumenty berie pointer na
+; meno súboru a logickú hodnotu, v C by vyzerala ako `void count_file(char *path, int print_totals)`.
+; Argumenty sú uložené v registroch rdi a rsi, čo je štandard pre 64-bitové systémy
+; založené na Unixe.
+
+; Použité zdroje:
+
+; Systémové volania Linux - https://filippo.io/linux-syscall-table/
+; CPU inštrukcie - https://www.felixcloutier.com/x86/
+; Dokumentácia assemblera - https://www.nasm.us/docs/3.01/
+; Použitie registrov pri volaní procedúry - https://en.wikipedia.org/wiki/X86_calling_conventions#System_V_AMD64_ABI
