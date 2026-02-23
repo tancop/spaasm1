@@ -18,8 +18,10 @@ read_fail_len  equ $ - read_fail_msg
 total_msg  db "Total:", 10
 total_len  equ $ - total_msg
 
-out_buf    times 20 db 0     ; output buffer for printn
-           db ' '            ; 2^64 is 20 characters, all we need to print a number
+max_digits equ 20            ; enough for all 64-bit numbers
+
+out_buf    times max_digits db 0
+           db ' '            ; output buffer for printn
 
 section   .bss
 
@@ -41,7 +43,7 @@ section   .text
 printn:
     mov rax, rdi                  ; number to print
     mov rdx, 0                    ; clear out for division
-    mov rsi, out_buf + 19         ; pointer to current character, start at last digit in buffer
+    mov rsi, out_buf + max_digits - 1 ; pointer to current character, start at last digit in buffer
     mov r8, 10                    ; constant 10 for division
     mov r9, 0                     ; number of digits written
 
