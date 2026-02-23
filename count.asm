@@ -9,10 +9,10 @@ global    count_file
 
 section   .data
 
-fail_msg  db "failed to open file", 10
+fail_msg  db "count: failed to open file", 10
 fail_len  equ $ - fail_msg
 
-read_fail_msg  db "failed to read from file", 10
+read_fail_msg  db "count: failed to read from file", 10
 read_fail_len  equ $ - read_fail_msg
 
 total_msg  db "Total:", 10
