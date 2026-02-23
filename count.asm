@@ -26,8 +26,6 @@ out_buf    times max_digits db 0
 section   .bss
 
 buf        resb 256  ; input buffer for reading from file
-buf_offset dq ?      ; saved offset into buffer
-read_ctr   dq ?      ; characters left in buffer
 
 digits     dq ?      ; character class counts for whole file
 big        dq ?
@@ -113,8 +111,8 @@ read_char:
     jne same_line              ; skip printing counts if same line
 
     ; save offset and read counter
-    mov [buf_offset], rsi
-    mov [read_ctr], rdi
+    push rdi
+    push rsi
 
     ; add line counts to totals
     add [digits], r_line_digits
@@ -142,8 +140,8 @@ read_char:
     print out_buf, 1
 
     ; restore offset and read counter
-    mov rsi, [buf_offset]
-    mov rdi, [read_ctr]
+    pop rsi
+    pop rdi
 
     ; skip adding character to total
     jmp loop_tail
