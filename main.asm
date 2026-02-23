@@ -76,13 +76,30 @@ end:
 ; Program je navrhnutý pre prostredie s jadrom Linux a architektúrou x86-64. Pre
 ; jeho skompilovanie potrebujeme assembler NASM a linker s podporou ELF, napr. GNU
 ; ld alebo gold. Funguje pre všetky súbory ktoré majú obsah a konečnú dĺžku. Ak je
-; vstupný súbor adresár alebo neexistuje vráti chybu. Ak nemá koniec ako /dev/zero
-; program nikdy neskončí a musíme ho manuálne zastaviť.
+; vstupný súbor adresár, neexistuje alebo používateľ nemá prístup na čítanie, program
+; vráti chybu. V prípade že súbor nemá koniec (ako /dev/zero), proces nekončí a je
+; treba ho manuálne zastaviť.
+;
+; Skompilovaný program používame ako: "count FILE1 FILE2..." kde FILEn je cesta na súbor.
+; Keď je prvý argument "-h" namiesto normálneho výstupu ukáže informácie o programe. Keď
+; nedostane argumenty vypíše chybu ktorá ukazuje na funkciu "-h".
+;
+; Výstup programu je ako prvé N riadkov kde na každom z nich sú 4 čísla - číslice, malé
+; písmená, veľké písmená a iné znaky na vstupnom riadku. Potom nasleduje riadok s označením
+; ("Total: ") a súčty pre každú kategóriu znakov. Ak je na príkazovom riadku viac argumentov,
+; program ich berie ako jeden vstup a zobrazí len jeden súčet. Keď niektorý zo súborov
+; nevie otvoriť vypíše chybu a skončí.
 ;
 ; Hlavná procedúra count_file je v súbore count.asm. Ako argumenty berie pointer na
 ; meno súboru a logickú hodnotu, v C by vyzerala ako `void count_file(char *path, int print_totals)`.
 ; Argumenty sú uložené v registroch rdi a rsi, čo je štandard pre 64-bitové systémy
-; založené na Unixe.
+; založené na Unixe. Procedúra otvorí súbor cez systémové volanie open, postupne číta
+; jeho obsah do buffera cez volanie read a na konci zatvorí súbor cez close.
+;
+; Pre výpis údajov je v rovnakom súbore procedúra printn ktorá berie ako jediný argument
+; číslo a vypíše ho na štandardný výstup. Hlavný cyklus postupne delí vstup 10 pomocou
+; inštrukcie div a zapisuje číslice na buffer od konca. Tak dosiahneme že pre správny
+; výsledok nie je treba v druhom cykle obrátiť buffer.
 
 ; Použité zdroje:
 
