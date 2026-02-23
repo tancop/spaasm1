@@ -72,8 +72,10 @@ printn_end:
     ret
 
 ; main procedure, rdi is pointer to file path
+; rsi is 1 if printing out totals
 count_file:
     mov rax, rdi
+    push rsi           ; save rsi to stack
     open rdi, O_RDONLY ; open input file as read only
 
     test rax, rax      ; check if return value is negative -> error
@@ -188,8 +190,15 @@ loop_tail:
     jmp read_char
 
 end:
-    cmp rbx, 1
-    jne no_total  ; skip printing if this is not the last file
+    ; restore r12-r15 from stack
+    pop r_line_other
+    pop r_line_small
+    pop r_line_big
+    pop r_line_digits
+
+    pop rsi       ; restore rsi
+    cmp rsi, 1
+    jne no_total  ; skip printing if the argument is not 1
 
     ; print total counts in the end
     print total_msg, total_len
@@ -208,11 +217,5 @@ end:
 
 no_total:
     close [open_fd]
-
-    ; restore r12-r15 from stack
-    pop r_line_other
-    pop r_line_small
-    pop r_line_big
-    pop r_line_digits
 
     ret

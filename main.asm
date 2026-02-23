@@ -37,7 +37,9 @@ not_help:
     dec rbx            ; count actual args without file name
 
 handle_file:
-    mov rdi, [rbp]
+    mov rdi, [rbp]     ; pointer to file name
+    mov rsi, rbx       ; function checks if argument is 1 to print totals
+                       ; rbx is 1 at the last file
     call count_file
 
     dec rbx
