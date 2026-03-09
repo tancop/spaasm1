@@ -14,7 +14,7 @@
 ; x. x. 2026
 ; 2. ročník, LS 2025/26, informatika
 
-%include "macros.asl"
+%include "macros.inc"
 
 global    _start
 extern    count_file

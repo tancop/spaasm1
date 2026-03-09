@@ -1,4 +1,4 @@
-%include "macros.asl"
+%include "macros.inc"
 
 global    count_file
 
