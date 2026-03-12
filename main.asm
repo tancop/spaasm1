@@ -11,7 +11,7 @@
 ; 12. Plus 1 bod: Je možné získať za (dobré) komentáre, resp. dokumentáciu, v
 ; anglickom jazyku.
 
-; x. x. 2026
+; 22. 3. 2026
 ; 2. ročník, LS 2025/26, informatika
 
 %include "macros.inc"
