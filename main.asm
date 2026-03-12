@@ -1,3 +1,5 @@
+%include "macros.inc"
+
 ; Zadanie 1
 ; Teodor Potančok
 
@@ -13,8 +15,6 @@
 
 ; 22. 3. 2026
 ; 2. ročník, LS 2025/26, informatika
-
-%include "macros.inc"
 
 global    _start
 extern    count_file
